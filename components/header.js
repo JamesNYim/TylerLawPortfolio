@@ -1,28 +1,29 @@
 class Header extends HTMLElement {
     constructor() {
         super();
+        this.attachShadow({ mode: 'open' });
     }
 
     connectedCallback() {
-        this.innerHTML = `
+        this.shadowRoot.innerHTML = `
             <style>
-                @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
                 header {
                     color: black;
                     font-family: 'Oswald', serif;
-                    margin: 10px 20px;
-                    position: relative
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    height: auto;
+                    padding: 0px 25px;
+                    border-bottom: 2px solid black; 
                 }
                 h1 {
                     display: inline;
-                    font-size: 48px;
+                    font-size: 60px;
+                    margin: 0px;
                 }
                 nav {
-                    display: inline-flex;
-                    flex-direction: column;
-                    position: absolute;
-                    right: 0;
-                    overflow: hidden;
+                    display: flex;
                 }
 
                 ul li {
@@ -31,7 +32,7 @@ class Header extends HTMLElement {
                 }
                 ul li a {
                     color: inherit;
-                    font-size: 24px;
+                    font-size: 36px;
                     text-decoration: none;
                 }
             </style>
