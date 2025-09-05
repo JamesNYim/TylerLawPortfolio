@@ -1,0 +1,27 @@
+# Use a small official Node image as the base for production
+FROM node:20-alpine
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy only package manifests first to leverage Docker layer caching
+# If package.json/package-lock.json don’t change, `npm ci` layer is reused
+COPY package.json package-lock.json* ./
+
+# Install exact, locked dependencies for reproducible builds
+# --omit=dev removes devDependencies for a smaller, prod-only image
+RUN npm ci --omit=dev
+
+# Now copy the actual application source (after deps to keep cache effective)
+COPY src ./src
+
+# Set environment variables used by your app
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Document that the container listens on port 8080
+EXPOSE 8080
+
+# Default command to run the API
+CMD ["node", "src/index.js"]
+

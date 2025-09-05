@@ -1,0 +1,36 @@
+services:
+  backend:
+    # Build the backend image from the /backend folder using its Dockerfile
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+
+    # Environment variables available inside the backend container
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - DATA_DIR=/data        # where your app reads/writes gallery data
+
+    # Bind-mount the host's ./data directory into the container at /data
+    # This makes your media/JSON persist across container restarts
+    volumes:
+      - ./data:/data
+
+    # Map host port 8080 -> container port 8080 so your API is reachable
+    ports:
+      - "8080:8080"
+
+  frontend:
+    # Build the frontend image from /frontend using its Dockerfile
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+
+    # Wait to start until backend is built/started (ordering helper, not health)
+    depends_on:
+      - backend
+
+    # Map host port 5173 -> container port 5173 to reach the web app
+    ports:
+      - "5173:5173"
+

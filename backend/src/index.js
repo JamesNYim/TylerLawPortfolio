@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 
 const app = express();
 
@@ -29,6 +30,8 @@ app.get('/api/gallery', (req, res) => {
   };
   res.json(sample);
 });
+
+app.use('/images', express.static(path.join(process.cwd(), '../data')));
 
 // Start server
 const PORT = process.env.PORT || 8080;

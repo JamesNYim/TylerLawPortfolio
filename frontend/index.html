@@ -1,23 +1,21 @@
-<!DOCTYPE html>
+<!-- frontend/index.html -->
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tyler Law's Website</title>
-    <link rel="stylesheet" href="./style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet">
-    <link rel="icon" href="./favicon.ico" type="image/x-icon">
-    <script src = "components/header.js" type="text/javascript" defer></script>
-    <script src = "components/footer.js" type="text/javascript" defer></script>
+
+    <!-- keep your font + favicon -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+
+    <!-- if you want global CSS available everywhere -->
+    <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-      <header-component></header-component>
-      <div class='pfp'>
-          <img src = 'Tlawpfp.jpg'>
-          <img src = 'Tlawpfp_2.jpg'>
-      </div>
-            <footer-component></footer-component>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
 
