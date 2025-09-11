@@ -1,0 +1,12 @@
+# Node / npm
+node_modules/
+package-lock.json
+
+# Enviroment
+.env
+
+# Docker / Containers
+/data/
+
+# System
+.DS_Store
