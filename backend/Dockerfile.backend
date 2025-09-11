@@ -23,5 +23,5 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Default command to run the API
-CMD ["node", "src/index.js"]
+CMD ["node", "src/server.js"]
 

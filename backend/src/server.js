@@ -7,6 +7,7 @@ const axios = require ('axios');
 const { google } = require('googleapis');
 const fs = require('fs');
 const crypto = require('crypto'); // FIX: needed for OAuth `state` CSRF protection
+const { Pool } = require('pg');
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Config: prefer envs; keep your existing defaults as fallbacks
@@ -16,9 +17,80 @@ const OAUTH_URL = process.env.GOOGLE_REDIRECT_URI;
 const TOKEN_JSON = process.env.TOKEN_JSON || './token.json'; // optional
 
 const app = express();
+
+// -----------------------|
+// Database Initalization |
+// -----------------------|
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+async function ensureSchema() {
+    const ddl = `
+         -- Create a table to represent each gallery section (e.g., “weddings”, “travel-2025”)
+        CREATE TABLE IF NOT EXISTS sections (             -- create only if missing (safe to run on boot)
+          id SERIAL PRIMARY KEY,                          -- surrogate key; handy for admin tools/sorting
+          slug TEXT UNIQUE NOT NULL,                      -- URL-friendly identifier (“weddings”); used in API paths and FKs
+          title TEXT NOT NULL,                            -- human-friendly name to render on the site
+          sort_order INT DEFAULT 0,                       -- lets you order sections in the UI without renaming slugs
+          updated_at TIMESTAMPTZ NOT NULL                 -- last time we changed anything in the section (for cache busting/UI refresh)
+        );
+
+        -- Create a table for individual photos/videos you imported from the Picker
+        CREATE TABLE IF NOT EXISTS media_items (
+          id SERIAL PRIMARY KEY,                          -- internal row id (not the Google id)
+          google_id TEXT NOT NULL,                        -- stable ID from Google Picker; used to avoid duplicates
+          section_slug TEXT NOT NULL                      -- which section this item belongs to…
+            REFERENCES sections(slug) ON DELETE CASCADE,  -- …FK to sections.slug; delete media automatically if the section is removed
+          filename TEXT NOT NULL,                         -- file name you saved (e.g., IMG_1234.jpg)
+          mime_type TEXT,                                 -- image/jpeg, image/png, video/mp4, etc. (useful for player/processing)
+          width INT,                                      -- pixels; good for responsive layouts/aspect ratio placeholders
+          height INT,                                     -- pixels; same as above
+          created_time TIMESTAMPTZ,                       -- original capture time from EXIF/metadata if available
+          storage_url TEXT NOT NULL,                      -- the URL your frontend will <img src> (e.g., /static/weddings/IMG_1234.jpg or S3 URL)
+          picked_at TIMESTAMPTZ NOT NULL,                 -- when the owner imported it (useful for sorting newest-first)
+          UNIQUE (google_id, section_slug)                -- prevents re-importing the same Google item into the same section twice
+        );
+
+        -- Speed up queries that fetch items for a given section (your most common query)
+        CREATE INDEX IF NOT EXISTS idx_media_items_section ON media_items(section_slug);
+        `;
+    await pool.query(ddl);
+}
+
+ensureSchema().catch((e) => {
+    console.error('Failed to ensure database schema', e);
+    process.exit(1);
+});
+
+// --------------------|
+// Static Media Storage|
+// --------------------|
+const path = require('path');
+const MEDIA_DIR = path.resolve(__dirname, '../media');
+
+if (!fs.existsSync(MEDIA_DIR)) {
+    fs.mkdirSync(MEDIA_DIR, {recursive: true});
+}
+app.use('/static', express.static(MEDIA_DIR));
+
+
+(async () => {
+  try {
+    const client = await pool.connect();
+    const { rows } = await client.query('select version() as v, current_database() as db;');
+    console.log('[DB] Connected:', rows[0].v, 'DB=', rows[0].db);
+    client.release();
+  } catch (e) {
+    console.error('[DB] Connection failed:', e.message);
+    process.exit(1); // fail fast if DB is unreachable
+  }
+})();
+
+
+// -------|
+// Routes |
+// -------|
 app.use(express.json());
 
-// FIX: correct option name `saveUninitialized` and pull secret from env
 app.use(session({ 
     secret: process.env.SESSION_SECRET || 'dev_only_secret_key', // FIX: use env; default for local only
     resave: false, 
@@ -39,7 +111,6 @@ if (fs.existsSync(TOKEN_JSON)) {
 
 // Ensure we are authenticated
 function ensureAuth(req, res, next) {
-    // FIX: don't rely on possibly-stale access_token; check if we have refresh_token or can refresh.
     const creds = oauth2Client.credentials;
     if (!creds || (!creds.access_token && !creds.refresh_token)) {
         return res.redirect('/auth/google');
@@ -53,8 +124,6 @@ app.get('/auth/google', (req, res) => {
     const state = crypto.randomUUID();
     req.session.oauthState = state;
 
-    // FIX: broaden scopes if you want /albums and /api/album/:id to work
-    // Keep Picker read-only scope; add Photos Library read-only for album listing.
     const scopes = [
         'https://www.googleapis.com/auth/photospicker.mediaitems.readonly',
         //'https://www.googleapis.com/auth/photoslibrary.readonly' // FIX: needed for /albums and /api/album/:albumId
@@ -64,7 +133,7 @@ app.get('/auth/google', (req, res) => {
         access_type: 'offline',
         prompt: 'consent',
         scope: scopes,
-        state // FIX: include state
+        state 
     });
 
     console.log('[OAUTH] Using redirect_uri =', process.env.GOOGLE_REDIRECT_URI);
@@ -151,10 +220,9 @@ app.get('/picker/mediaItems', ensureAuth, async (req, res) => {
   if (!sessionId) return res.status(400).json({ error: 'Missing sessionId' });
 
   try {
-    // FIX: ensure fresh token each call
     const { token } = await oauth2Client.getAccessToken();
 
-    // FIX: paginate until all items are returned
+    // paginate until all items are returned
     let items = [];
     let pageToken = null;
     do {
@@ -294,5 +362,25 @@ async function getAlbums(accessToken) {
         throw error;
     }
 }
+
+// -= DEBUG ROUTES =-
+app.get('/_debug/db', async (req, res) => {
+  try {
+    const { rows: t1 } = await pool.query(`
+      select table_name from information_schema.tables 
+      where table_schema='public' and table_name in ('sections','media_items') 
+      order by table_name;
+    `);
+    const { rows: c1 } = await pool.query('select count(*)::int as n from sections;');
+    const { rows: c2 } = await pool.query('select count(*)::int as n from media_items;');
+    res.json({
+      tables: t1.map(r => r.table_name),
+      counts: { sections: c1[0].n, media_items: c2[0].n }
+    });
+  } catch (e) {
+    console.error('[DB] /_debug/db failed', e);
+    res.status(500).json({ error: e.message });
+  }
+});
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT} ...`));

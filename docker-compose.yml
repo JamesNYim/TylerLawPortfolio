@@ -10,6 +10,7 @@ services:
       - NODE_ENV=production
       - PORT=8080
       - DATA_DIR=/data        # where your app reads/writes gallery data
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/gallerydb
 
     # Bind-mount the host's ./data directory into the container at /data
     # This makes your media/JSON persist across container restarts
@@ -19,6 +20,15 @@ services:
     # Map host port 8080 -> container port 8080 so your API is reachable
     ports:
       - "8080:8080"
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gallerydb
+    ports:
+      - "5432:5432"
 
   frontend:
     # Build the frontend image from /frontend using its Dockerfile
