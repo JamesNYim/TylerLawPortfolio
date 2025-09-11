@@ -11,6 +11,8 @@ services:
       - PORT=8080
       - DATA_DIR=/data        # where your app reads/writes gallery data
       - DATABASE_URL=postgres://postgres:postgres@db:5432/gallerydb
+    env_file:
+      - ./backend/.env
 
     # Bind-mount the host's ./data directory into the container at /data
     # This makes your media/JSON persist across container restarts
