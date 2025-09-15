@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Google Photos Picker</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; padding: 24px; line-height: 1.4; }
+    label { display: block; margin: 12px 0 4px; }
+    input, button { font-size: 14px; padding: 8px 10px; }
+    #output { white-space: pre-wrap; background:#f6f8fa; padding:12px; border-radius:8px; }
+  </style>
+</head>
+<body>
+  <h1>Google Photos Picker (auto-import)</h1>
+
+  <label>Section slug (URL friendly)</label>
+  <input id="slug" placeholder="e.g. weddings" value="weddings" />
+
+  <label>Section title (display name)</label>
+  <input id="title" placeholder="e.g. Weddings" value="Weddings" />
+
+  <div style="margin:16px 0;">
+    <button id="start">Pick from Google Photos</button>
+  </div>
+
+  <div id="status"></div>
+  <h3>Picked items (preview)</h3>
+  <pre id="output"></pre>
+
+  <script>
+  const $ = (id) => document.getElementById(id);
+
+  document.getElementById('start').onclick = async () => {
+    const slug = $('slug').value.trim() || 'gallery';
+    const sectionTitle = $('title').value.trim() || slug;
+
+    $('status').textContent = 'Creating Picker session…';
+
+    // 1) Create session
+    const sess = await fetch('/picker/sessions', { method: 'POST' }).then(r => r.json());
+    // Expecting { sessionId, pickerUri, ... }
+    if (!sess || !sess.sessionId || !sess.pickerUri) {
+      $('status').textContent = 'Failed to create Picker session.';
+      return;
+    }
+
+    // 2) Open the Picker UI in a NEW TAB so this page keeps running and can poll
+    window.open(sess.pickerUri, '_blank');
+
+    $('status').textContent = 'Waiting for selection… (you can switch to the Picker tab)';
+
+    let imported = false; // guard so we only import once
+
+    // 3) Poll until they finish picking
+    const poll = async () => {
+      try {
+        const info = await fetch('/picker/sessions/' + encodeURIComponent(sess.sessionId)).then(r => r.json());
+        if (!info.mediaItemsSet) {
+          const interval = info.recommendedPollingIntervalMillis || 1200;
+          setTimeout(poll, interval);
+        } else {
+          $('status').textContent = 'Selection complete. Fetching chosen items…';
+
+          // 4) Fetch the chosen items (server does pagination)
+          const items = await fetch('/picker/mediaItems?sessionId=' + encodeURIComponent(sess.sessionId)).then(r => r.json());
+          $('output').textContent = JSON.stringify(items, null, 2);
+
+          // 5) Auto-import ONCE
+          if (!imported) {
+            imported = true;
+            $('status').textContent = 'Importing to section "' + sectionTitle + '"…';
+
+            const resp = await fetch('/api/gallery/sections/' + encodeURIComponent(slug) + '/import', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionId: sess.sessionId, sectionTitle })
+            });
+            const data = await resp.json();
+
+            if (resp.ok) {
+              $('status').textContent = 'Imported ' + (data.importedCount || 0) + ' items. You can now render /api/gallery on the frontend.';
+            } else {
+              $('status').textContent = 'Import failed: ' + (data.error || resp.statusText);
+            }
+          }
+        }
+      } catch (e) {
+        $('status').textContent = 'Polling error: ' + (e?.message || e);
+      }
+    };
+    poll();
+  };
+  </script>
+</body>
+</html>
