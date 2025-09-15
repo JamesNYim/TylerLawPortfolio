@@ -1,6 +1,5 @@
 // Server.js
 
-require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const axios = require ('axios');
@@ -9,12 +8,6 @@ const fs = require('fs');
 const crypto = require('crypto'); // FIX: needed for OAuth `state` CSRF protection
 const { Pool } = require('pg');
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Config: prefer envs; keep your existing defaults as fallbacks
-// ───────────────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT; 
-const OAUTH_URL = process.env.GOOGLE_REDIRECT_URI;
-const TOKEN_JSON = process.env.TOKEN_JSON || './token.json'; // optional
 
 const app = express();
 
@@ -173,11 +166,9 @@ app.post('/picker/sessions', ensureAuth, async (req, res) => {
             { headers: { Authorization: `Bearer ${token}`} }
         );
 
-        // FIX: normalize the sessionId (Google returns `name: "sessions/<id>"`)
-        //const sessionId = (data.name || '').split('/').pop();
         return res.json({
-            sessionId: data.id, // FIX: expose normalized id
-            pickerUri: data.pickerUri, // what you open in a new tab
+            sessionId: data.id, 
+            pickerUri: data.pickerUri, 
             raw: data
         });
     }
