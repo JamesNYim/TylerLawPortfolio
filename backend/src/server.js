@@ -3,8 +3,6 @@
 const express = require('express');
 const session = require('express-session');
 const axios = require ('axios');
-const { google } = require('googleapis');
-const fs = require('fs');
 const crypto = require('crypto'); // FIX: needed for OAuth `state` CSRF protection
 
 
@@ -46,16 +44,8 @@ app.use(session({
 }));
 
 // Load the OAuth2 configuration
-const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    OAUTH_URL
-);
-
 // Load saved token (if it exists)
-if (fs.existsSync(TOKEN_JSON)) {
-    oauth2Client.setCredentials(JSON.parse(fs.readFileSync(TOKEN_JSON)));
-}
+
 
 // Ensure we are authenticated
 //ensureAuth
