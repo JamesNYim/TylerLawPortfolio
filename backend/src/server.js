@@ -58,13 +58,8 @@ if (fs.existsSync(TOKEN_JSON)) {
 }
 
 // Ensure we are authenticated
-function ensureAuth(req, res, next) {
-    const creds = oauth2Client.credentials;
-    if (!creds || (!creds.access_token && !creds.refresh_token)) {
-        return res.redirect('/auth/google');
-    }
-    next();
-}
+//ensureAuth
+
 
 // Start OAuth process
 app.get('/auth/google', (req, res) => {
