@@ -6,7 +6,6 @@ const axios = require ('axios');
 const { google } = require('googleapis');
 const fs = require('fs');
 const crypto = require('crypto'); // FIX: needed for OAuth `state` CSRF protection
-const { Pool } = require('pg');
 
 
 const app = express();
@@ -14,7 +13,6 @@ const app = express();
 // -----------------------|
 // Database Initalization |
 // -----------------------|
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function ensureSchema() {
     const ddl = `
