@@ -2,7 +2,13 @@
 
 const express = require('express');
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
+
+const ensureAuth = require('../middleware/ensureAuth');
 const oauth2Client = require('../oauth/google');
+const pool = require('../db/pool');
+
 const router = express.Router();
 
 router.post('/api/gallery/sections/:slug/import', ensureAuth, async (req, res) => {

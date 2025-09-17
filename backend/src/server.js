@@ -1,10 +1,19 @@
 // Server.js
 
+const sessionMiddleware = require('./middleware/session');
+const ensureAuth = require('./middleware/ensureAuth');
+const oauth2Client = require('./oauth/google');
+const pool = require ('./db/pool');
+const ensureSchema = require('./db/ensureSchema');
+
+const oauthRoutes = require('./routes/oauth');
+const pickerRoutes = require('./routes/picker');
+const galleryRoutes = require('./routes/gallery');
+const albumsRoutes = require('./routes/albums');
+
 const express = require('express');
 const session = require('express-session');
-const axios = require ('axios');
-const crypto = require('crypto'); // FIX: needed for OAuth `state` CSRF protection
-
+const fs = require('fs');
 
 const app = express();
 
@@ -37,11 +46,7 @@ app.use('/static', express.static(MEDIA_DIR));
 // -------|
 app.use(express.json());
 
-app.use(session({ 
-    secret: process.env.SESSION_SECRET || 'dev_only_secret_key', // FIX: use env; default for local only
-    resave: false, 
-    saveUninitialized: false // FIX: typo: was `saveUninitalized`
-}));
+// app.use(session())
 
 // Load the OAuth2 configuration
 // Load saved token (if it exists)
@@ -83,6 +88,7 @@ app.get('/picker', ensureAuth, (req, res) => {
 
 // Public gallery payload for the frontend 
 // /api/gallery
+
 // -= DEBUG ROUTES =-
 app.get('/_debug/db', async (req, res) => {
   try {
