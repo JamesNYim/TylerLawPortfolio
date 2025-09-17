@@ -4,6 +4,7 @@
 
 const { google } = require('googleapis');
 const fs = require('fs');
+
 const { OAUTH_URL, TOKEN_JSON } = require('../config');
 
 const oauth2Client = new google.auth.OAuth2(
@@ -17,5 +18,3 @@ if (fs.existsSync(TOKEN_JSON)) {
 }
 
 module.exports = oauth2Client;
-
-

@@ -58,7 +58,7 @@ router.get('/picker/sessions/:sessionId', ensureAuth, async (req, res) => {
     }
 });
 
-app.get('/picker/mediaItems', ensureAuth, async (req, res) => {
+router.get('/picker/mediaItems', ensureAuth, async (req, res) => {
   const sessionId = req.query.sessionId;
   if (!sessionId) return res.status(400).json({ error: 'Missing sessionId' });
 

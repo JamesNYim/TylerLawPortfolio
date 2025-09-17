@@ -1,8 +1,14 @@
 // Server.js
 
+require('dotenv').config();
+
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+
 const sessionMiddleware = require('./middleware/session');
 const ensureAuth = require('./middleware/ensureAuth');
-const oauth2Client = require('./oauth/google');
+
 const pool = require ('./db/pool');
 const ensureSchema = require('./db/ensureSchema');
 
@@ -11,15 +17,14 @@ const pickerRoutes = require('./routes/picker');
 const galleryRoutes = require('./routes/gallery');
 const albumsRoutes = require('./routes/albums');
 
-const express = require('express');
-const session = require('express-session');
-const fs = require('fs');
-
 const app = express();
+
+// JSON + Session
+app.use(express.json());
+app.use(sessionMiddleware);
 
 // Ensure Schema
 // Static Media Storage|
-const path = require('path');
 const MEDIA_DIR = path.resolve(__dirname, '../media');
 
 if (!fs.existsSync(MEDIA_DIR)) {
@@ -39,55 +44,21 @@ app.use('/static', express.static(MEDIA_DIR));
     process.exit(1); // fail fast if DB is unreachable
   }
 })();
-
-
-// -------|
-// Routes |
-// -------|
-app.use(express.json());
-
-// app.use(session())
-
-// Load the OAuth2 configuration
-// Load saved token (if it exists)
-
-
-// Ensure we are authenticated
-//ensureAuth
-
-
-// Start OAuth process
-//auth/google
-
-// OAuth Callback storing tokens and redirecting
-// auth/google/callback
-
-// Create a new Picker Session
-// /picker/sessions
-
-// Poll a picker session's status
-// /picker/sessions/:sessionId
-
-// Fetch picked items (with pagination)
-// /picker/mediaItems
-
-// Temp Frontend
-app.get('/picker', ensureAuth, (req, res) => {
-    res.sendFile(path.join(__dirname, '../static/picker.html'));
+ensureSchema().catch((e) => {
+    console.error('Failed to ensure database schema', e);
+    process.exit(1);
 });
 
-// List Albums
-// /albums
+// Temp admin page
+app.get('/picker', ensureAuth, (req, res) => {
+    res.sendFile(path.resolve(__dirname, './static/picker.html'));
+});
 
-// Get Media from Album
-// /api/album/:albumId
-
-// Importing picked photos into the database
-// Import picked media into a gallery "section"
-// /api/gallery/sections/:slug/import
-
-// Public gallery payload for the frontend 
-// /api/gallery
+// Routes
+app.use(oauthRoutes);
+app.use(pickerRoutes);
+app.use(galleryRoutes);
+app.use(albumsRoutes);
 
 // -= DEBUG ROUTES =-
 app.get('/_debug/db', async (req, res) => {
@@ -109,4 +80,5 @@ app.get('/_debug/db', async (req, res) => {
   }
 });
 
+const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT} ...`));

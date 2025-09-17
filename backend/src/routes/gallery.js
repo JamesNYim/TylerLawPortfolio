@@ -11,6 +11,9 @@ const pool = require('../db/pool');
 
 const router = express.Router();
 
+const MEDIA_DIR = path.resolve(__dirname, '../../media');
+if (!fs.existsSync(MEDIA_DIR)) fs.mkdirSync(MEDIA_DIR, { recursive: true });
+
 router.post('/api/gallery/sections/:slug/import', ensureAuth, async (req, res) => {
   try {
     const { slug } = req.params;

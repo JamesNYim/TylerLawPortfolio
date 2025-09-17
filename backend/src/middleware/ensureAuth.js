@@ -1,6 +1,6 @@
 // ensureAuth.js
 
-const oauth2Client = require('../oauth.google');
+const oauth2Client = require('../oauth/google');
 
 function ensureAuth(req, res, next) {
     const creds = oauth2Client.credentials;
