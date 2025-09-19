@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Delete Media Items (Temp Admin)</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; max-width: 1000px; margin: 0 auto; }
+    h1 { margin-bottom: 16px; }
+    .row { display:flex; gap:8px; margin-bottom:16px; }
+    input, button { padding:6px 10px; font-size:14px; }
+    #status { margin: 12px 0; font-weight: bold; }
+    #grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap:12px; }
+    .card { border:1px solid #ddd; border-radius:8px; padding:8px; }
+    .card img { width:100%; height:120px; object-fit:cover; border-radius:6px; }
+    .toolbar { display:flex; justify-content: space-between; align-items:center; margin-top:6px; }
+    small { font-size:12px; color:#555; word-break:break-all; }
+  </style>
+</head>
+<body>
+  <h1>Delete Media Items (Temporary Page)</h1>
+
+  <div class="row">
+    <input id="slug" placeholder="section slug (e.g. weddings)" />
+    <button id="loadBtn">Load Items</button>
+    <button id="deleteSelected" disabled>Delete Selected</button>
+  </div>
+
+  <div id="status"></div>
+  <div id="grid"></div>
+
+<script>
+const $ = sel => document.querySelector(sel);
+
+async function loadItems() {
+  const slug = $('#slug').value.trim();
+  if (!slug) { $('#status').textContent = 'Enter a slug'; return; }
+
+  $('#status').textContent = 'Loading...';
+  $('#grid').innerHTML = '';
+  $('#deleteSelected').disabled = true;
+
+  try {
+    const resp = await fetch(`/api/gallery/sections/${encodeURIComponent(slug)}/items`);
+    if (!resp.ok) throw new Error(resp.statusText);
+    const data = await resp.json();
+
+    if (!data.items || data.items.length === 0) {
+      $('#status').textContent = `No items for "${slug}".`;
+      return;
+    }
+
+    $('#status').textContent = `Loaded ${data.items.length} items.`;
+    data.items.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <label>
+          <input type="checkbox" class="sel" data-id="${item.id}">
+          <img src="${item.fullUrl || item.storage_url}" alt="">
+        </label>
+        <small>ID: ${item.id}</small>
+        <div class="toolbar">
+          <button class="delOne" data-id="${item.id}">Delete</button>
+          <a href="${item.fullUrl || item.storage_url}" target="_blank">Open</a>
+        </div>
+      `;
+      $('#grid').appendChild(div);
+    });
+
+    // enable bulk delete when any checked
+    $('#grid').addEventListener('change', () => {
+      $('#deleteSelected').disabled = document.querySelectorAll('.sel:checked').length === 0;
+    });
+
+    // single delete
+    $('#grid').addEventListener('click', async e => {
+      if (e.target.classList.contains('delOne')) {
+        const id = e.target.getAttribute('data-id');
+        if (!confirm('Delete item ' + id + '?')) return;
+        await deleteIds(slug, [id]);
+        await loadItems();
+      }
+    });
+
+  } catch (err) {
+    $('#status').textContent = 'Error: ' + err.message;
+  }
+}
+
+async function deleteIds(slug, ids) {
+  $('#status').textContent = `Deleting ${ids.length}...`;
+  const resp = await fetch(`/api/gallery/sections/${encodeURIComponent(slug)}/delete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids })
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    $('#status').textContent = 'Delete failed: ' + (data.error || resp.statusText);
+  } else {
+    $('#status').textContent = `Deleted ${data.deletedCount} item(s).`;
+  }
+}
+
+$('#loadBtn').onclick = loadItems;
+$('#deleteSelected').onclick = async () => {
+  const slug = $('#slug').value.trim();
+  const ids = [...document.querySelectorAll('.sel:checked')].map(cb => cb.dataset.id);
+  if (ids.length === 0) return;
+  if (!confirm(`Delete ${ids.length} items?`)) return;
+  await deleteIds(slug, ids);
+  await loadItems();
+};
+</script>
+</body>
+</html>
+

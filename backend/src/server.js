@@ -54,6 +54,10 @@ app.get('/picker', ensureAuth, (req, res) => {
     res.sendFile(path.resolve(__dirname, './static/picker.html'));
 });
 
+// Temp admin delete page
+app.get('/delete', (req, res) => {
+    res.sendFile(path.resolve(__dirname, './static/delete.html'));
+});
 // Routes
 app.use(oauthRoutes);
 app.use(pickerRoutes);

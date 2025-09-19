@@ -112,9 +112,12 @@ router.get('/api/gallery', async (req, res) => {
   try {
     // read sections (ordered for display)
     const { rows: sections } = await pool.query(
-      `SELECT slug, title, sort_order, updated_at
-       FROM sections
-       ORDER BY sort_order ASC, slug ASC`
+      `SELECT s.slug, s.title, s.sort_order, s.updated_at
+       FROM sections s
+       WHERE EXISTS (
+         SELECT 1 FROM media_items m WHERE m.section_slug = s.slug
+       )
+       ORDER BY s.sort_order ASC, s.slug ASC`
     );
 
     // fetch items per section
