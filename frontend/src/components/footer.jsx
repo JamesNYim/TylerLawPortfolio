@@ -8,7 +8,7 @@ export default function Footer() {
       borderTop: '2px solid black',
       padding: '10px 25px'
     }}>
-      <h1 style={{ fontSize: 80, margin: 10 }}>TYLER LAW</h1>
+      <h1 style={{ fontSize: 60, margin: 10 }}>TYLER LAW</h1>
     </footer>
   );
 }

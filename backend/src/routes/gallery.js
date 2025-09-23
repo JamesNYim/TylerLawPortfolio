@@ -11,8 +11,7 @@ const pool = require('../db/pool');
 
 const router = express.Router();
 
-const MEDIA_DIR = path.resolve(__dirname, '../../media');
-if (!fs.existsSync(MEDIA_DIR)) fs.mkdirSync(MEDIA_DIR, { recursive: true });
+const { MEDIA_DIR } = require('../config');
 
 // === helpers (add near top of file, after MEDIA_DIR) ===
 function localPathFromStorageUrl(storageUrl) {
@@ -81,7 +80,7 @@ router.post('/api/gallery/sections/:slug/import', ensureAuth, async (req, res) =
         w.on('error', reject);
       });
 
-      const storageUrl = `/static/${slug}/${filename}`;
+      const storageUrl = `/media/${slug}/${filename}`;
       await pool.query(
         `INSERT INTO media_items
            (google_id, section_slug, filename, mime_type, width, height, created_time, storage_url, picked_at)

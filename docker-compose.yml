@@ -18,6 +18,7 @@ services:
     # This makes your media/JSON persist across container restarts
     volumes:
       - ./data:/data
+      - ./backend/media:/app/media
 
     # Map host port 8080 -> container port 8080 so your API is reachable
     ports:

@@ -11,8 +11,6 @@ export default function App() {
       <main style={{ flex: 1 }}>
         <div className="pfp">
           {/* Option A: images in /public (public/Tlawpfp.jpg) */}
-          <img src="/api/images/Tlawpfp.jpg" alt="Tyler Law" />
-          <img src="/api/images/Tlawpfp_2.jpg" alt="Tyler Law" />
         </div>
       </main>
 

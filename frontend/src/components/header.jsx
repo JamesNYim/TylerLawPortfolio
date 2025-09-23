@@ -15,11 +15,15 @@ export default function Header() {
       <h1 style={{ fontSize: '60px', margin: 0 }}>TYLER LAW</h1>
       
       <nav style={{ display: 'flex', gap: '1rem' }}>
-        <Link style={{ fontSize: '36px', textDecoration: 'none', color: 'inherit' }} to="/">Home</Link>
-        <Link style={{ fontSize: '36px', textDecoration: 'none', color: 'inherit' }} to="/gallery">Gallery</Link>
-        <Link style={{ fontSize: '36px', textDecoration: 'none', color: 'inherit' }} to="/contact">Contact</Link>
+        <Link style={link} to="/">Home</Link>
+        <Link style={link} to="/film">Film</Link>
+        <Link style={link} to="/dance">Dance</Link>
+        <Link style={link} to="/modeling">Modeling</Link>
+        <Link style={link} to="/contact">Contact</Link>
       </nav>
     </header>
   );
 }
+
+const link = { fontSize: '36px', textDecoration: 'none', color: 'inherit' };
 
