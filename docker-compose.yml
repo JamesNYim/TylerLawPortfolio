@@ -45,5 +45,5 @@ services:
 
     # Map host port 5173 -> container port 5173 to reach the web app
     ports:
-      - "5173:5173"
+      - "80:80"
 

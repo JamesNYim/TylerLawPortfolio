@@ -9,7 +9,7 @@ export default function SectionTabPage({ title, tabs, showTabs }) {
 
   const shouldShowTabs = showTabs ?? normalized.length > 1;
   // in SectionTabPage.jsx
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || ""; // e.g. "http://localhost:8080"
+    const API_BASE = ""; // e.g. "http://localhost:8080"
 
     useEffect(() => {
       let cancel = false;
@@ -18,7 +18,6 @@ export default function SectionTabPage({ title, tabs, showTabs }) {
         try {
           const url = `${API_BASE}/api/gallery/sections/${active}/items`;
           const res = await fetch(url, {
-            credentials: "include",
             headers: { Accept: "application/json" }
           });
 
@@ -95,14 +94,21 @@ export default function SectionTabPage({ title, tabs, showTabs }) {
 }
 
 function ImageGrid({ items }) {
-  const canShow = (u='') => /\.(jpe?g|png|gif|webp|avif)$/i.test(u);
+  const isWebImage = (u='') => /\.(jpe?g|png|gif|webp|avif)$/i.test(u);
   return (
     <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:8 }}>
       {items
         .map(m => ({ src: m.fullUrl || m.thumbUrl || m.src, alt: m.filename || '' }))
-        .filter(m => canShow(m.src))
         .map((m, i) => (
-          <img key={i} src={m.src} alt={m.alt} loading="lazy" style={{ width:'100%', borderRadius:12 }} />
+          isWebImage(m.src) ? (
+            <img key={i} src={m.src} alt={m.alt} loading="lazy" style={{ width:'100%', borderRadius:12 }} />
+          ) : (
+            <a key={i} href={m.src} target="_blank" rel="noreferrer"
+               style={{ display:'grid', placeItems:'center', aspectRatio:'1/1',
+                        border:'1px dashed #888', borderRadius:12, fontSize:12 }}>
+              {m.alt || m.src.split('/').pop()} (not web-viewable)
+            </a>
+          )
       ))}
     </div>
   );

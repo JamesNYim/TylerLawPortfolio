@@ -26,7 +26,7 @@ app.use(sessionMiddleware);
 // Ensure Schema
 // Static Media Storage|
 const { MEDIA_DIR } = require('./config'); 
-app.use(['/media', '/static'], express.static(MEDIA_DIR));
+app.use('/media', express.static(MEDIA_DIR));
 console.log('[MEDIA_DIR]', MEDIA_DIR, 'exists:', fs.existsSync(MEDIA_DIR));
 
 
