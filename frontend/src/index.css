@@ -66,3 +66,53 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Image grid css */
+/* Container: responsive grid that auto-fits cards */
+.image-grid {
+  --min-tile: 160px;           /* minimum tile width */
+  --gap: 12px;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--min-tile), 1fr));
+  gap: var(--gap);
+}
+
+/* Images: fill their grid cell */
+.image-grid-item {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;         /* square tiles; remove if you want natural aspect */
+  object-fit: cover;           /* crops overflow to keep a tidy grid */
+  border-radius: 12px;
+}
+
+/* Fallback cards for non-web formats (HEIC/DNG/etc.) */
+.image-grid-fallback {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  border: 1px dashed #888;
+  border-radius: 12px;
+  font-size: 12px;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  padding: 8px;
+}
+
+/* Optional: hover affordances */
+.image-grid-item:hover {
+  filter: brightness(0.97);
+}
+.image-grid-fallback:hover {
+  background: #fafafa;
+}
+
+/* Optional: tweak density by breakpoints */
+@media (min-width: 480px) { .image-grid { --min-tile: 180px; } }
+@media (min-width: 768px) { .image-grid { --min-tile: 200px; } }
+@media (min-width: 1024px){ .image-grid { --min-tile: 220px; } }
+
+

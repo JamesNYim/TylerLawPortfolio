@@ -36,30 +36,6 @@ export default function SectionTabPage({ title, tabs, showTabs }) {
       return () => { cancel = true; };
     }, [active]);
 
-    /*
-  useEffect(() => {
-    let cancel = false;
-    (async () => {
-      setLoading(true);
-      setErr("");
-      try {
-        const res = await fetch(`/api/gallery/sections/${active}/items`);
-        const data = await res.json();
-        if (!cancel) {
-          setItems(data.items || []);
-          setLoading(false);
-        }
-      } catch (e) {
-        if (!cancel) {
-          setErr("Failed to load images.");
-          setLoading(false);
-        }
-      }
-    })();
-    return () => { cancel = true; };
-  }, [active]);
-    */
-
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: 16 }}>
       <h1 style={{ fontFamily: "Oswald, serif", fontSize: 48, margin: "16px 0" }}>{title}</h1>
@@ -94,25 +70,36 @@ export default function SectionTabPage({ title, tabs, showTabs }) {
 }
 
 function ImageGrid({ items }) {
-  const isWebImage = (u='') => /\.(jpe?g|png|gif|webp|avif)$/i.test(u);
+  const isWebImage = (u = '') => /\.(jpe?g|png|gif|webp|avif)$/i.test(u);
   return (
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:8 }}>
+    <div className="image-grid">
       {items
         .map(m => ({ src: m.fullUrl || m.thumbUrl || m.src, alt: m.filename || '' }))
-        .map((m, i) => (
+        .map((m, i) =>
           isWebImage(m.src) ? (
-            <img key={i} src={m.src} alt={m.alt} loading="lazy" style={{ width:'100%', borderRadius:12 }} />
+            <img
+              key={i}
+              src={m.src}
+              alt={m.alt}
+              loading="lazy"
+              className="image-grid-item"
+            />
           ) : (
-            <a key={i} href={m.src} target="_blank" rel="noreferrer"
-               style={{ display:'grid', placeItems:'center', aspectRatio:'1/1',
-                        border:'1px dashed #888', borderRadius:12, fontSize:12 }}>
+            <a
+              key={i}
+              href={m.src}
+              target="_blank"
+              rel="noreferrer"
+              className="image-grid-fallback"
+            >
               {m.alt || m.src.split('/').pop()} (not web-viewable)
             </a>
           )
-      ))}
+        )}
     </div>
   );
 }
+
 
 
 function pretty(s) {

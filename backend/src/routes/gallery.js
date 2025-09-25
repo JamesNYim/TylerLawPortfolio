@@ -4,6 +4,8 @@ const express = require('express');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
+
 
 const ensureAuth = require('../middleware/ensureAuth');
 const oauth2Client = require('../oauth/google');
@@ -64,22 +66,33 @@ router.post('/api/gallery/sections/:slug/import', ensureAuth, async (req, res) =
       const googleId = item.id || item.mediaItemId || item.name?.split('/').pop();
       if (!googleId) continue;
 
-      const filename = item.mediaFile.filename || `${googleId}.jpg`;
-      const outPath = path.join(sectionDir, filename);
+      let filename = item.mediaFile.filename || `${googleId}.jpg`;
+      let outPath = path.join(sectionDir, filename);
       const downloadUrl = item.mediaFile.baseUrl;
       if (!downloadUrl) continue;
 
       const resp = await axios.get(downloadUrl, {
-        responseType: 'stream',
+        responseType: 'arraybuffer',
         headers: { Authorization: `Bearer ${token}` }
       });
-      await new Promise((resolve, reject) => {
-        const w = fs.createWriteStream(outPath);
-        resp.data.pipe(w);
-        w.on('finish', resolve);
-        w.on('error', reject);
-      });
 
+      let buffer = Buffer.from(resp.data);
+      
+      const ext = path.extname(filename).toLowerCase();
+  
+      if (ext === '.heic' || ext === '.heif') {
+        // Convert to jpg
+        const jpgName = filename.replace(/\.(heic|heif)$/i, '.jpg');
+        outPath = path.join(sectionDir, jpgName);
+  
+        buffer = await sharp(buffer, { limitInputPixels: false })
+          .jpeg({ quality: 90 })
+          .toBuffer();
+  
+        filename = jpgName; // update stored filename
+      }
+
+      await fs.promises.writeFile(outPath, buffer); 
       const storageUrl = `/media/${slug}/${filename}`;
       await pool.query(
         `INSERT INTO media_items
