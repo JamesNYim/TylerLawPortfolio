@@ -47,3 +47,9 @@ services:
     ports:
       - "80:80"
 
+    # Watches for file changes
+    develop:
+      watch: 
+        - path: ./frontend
+          action: rebuild 
+          target: /app

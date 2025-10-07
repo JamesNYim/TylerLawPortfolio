@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "../styles/ImageGrid.css";
 
 export default function SectionTabPage({ title, tabs, showTabs }) {
   const normalized = tabs.map((t) => t.toLowerCase());
@@ -37,7 +38,7 @@ export default function SectionTabPage({ title, tabs, showTabs }) {
     }, [active]);
 
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: 16 }}>
+    <div style={{ margin: "0 auto", padding: 16 }}>
       <h1 style={{ fontFamily: "Oswald, serif", fontSize: 48, margin: "16px 0" }}>{title}</h1>
 
       {shouldShowTabs && (

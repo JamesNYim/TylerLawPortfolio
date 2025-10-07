@@ -1,0 +1,15 @@
+/* ImageGrid.css */
+
+.image-grid{
+  width:100%;
+  margin:0 auto;
+  column-count:3;            /* masonry columns */
+  column-gap:16px;
+}
+.image-grid-item{
+  display:inline-block;      /* lets items flow into columns */
+  width:100%;                /* fill column width */
+  margin:0 0 16px;
+  break-inside:avoid;        /* prevent split across columns */
+}
+
