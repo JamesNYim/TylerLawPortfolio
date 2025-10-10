@@ -3,7 +3,7 @@ export default function Footer() {
   return (
     <footer style={{
       color: 'black',
-      fontFamily: 'Oswald, serif',
+      fontFamily: 'Playfair Display, serif',
       width: '100%',
       borderTop: '2px solid black',
       padding: '10px 25px'
