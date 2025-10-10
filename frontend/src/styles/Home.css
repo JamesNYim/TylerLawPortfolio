@@ -1,0 +1,28 @@
+/* Home.css */
+
+.aboutMe {
+    display: flex;
+    margin: 0 auto;
+    gap: 24px;
+    justify-content: center;
+    height: auto;
+}
+
+.aboutMe .bio {
+    margin: 0 16px;
+    flex: 1 1 50%;
+}
+
+.aboutMe .bio p {
+    font-size: 44px;
+}
+#home-gallery {
+    height: 100%;
+    flex: 1 1 50%;
+}
+
+#home-gallery .image-grid {
+    width: 100%;
+    margin: 0 auto;
+    column-count: 1;
+}

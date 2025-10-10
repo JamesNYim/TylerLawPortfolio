@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "../styles/ImageGrid.css";
 
-export default function SectionTabPage({ title, tabs, showTabs }) {
+export default function SectionTabPage({id, title, tabs, showTabs }) {
   const normalized = tabs.map((t) => t.toLowerCase());
   const [active, setActive] = useState(normalized[0]);
   const [items, setItems] = useState([]);
@@ -38,7 +38,7 @@ export default function SectionTabPage({ title, tabs, showTabs }) {
     }, [active]);
 
   return (
-    <div style={{ margin: "0 auto", padding: 16 }}>
+    <div id={id} className="PhotoGallery" style={{ margin: "0 auto", padding: 16 }}>
       <h1 style={{ fontFamily: "Oswald, serif", fontSize: 48, margin: "16px 0" }}>{title}</h1>
 
       {shouldShowTabs && (
