@@ -7,6 +7,7 @@ import Film from './pages/Film.jsx';
 import Dance from './pages/Dance.jsx';
 import Modeling from './pages/Modeling.jsx';
 import Home from './pages/Home.jsx';
+import Contact from './pages/Contact.jsx';
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')).render(
       <Route path="/film" element={<Film />} />
       <Route path="/dance" element={<Dance />} />
       <Route path="/modeling" element={<Modeling />} />
+      <Route path="/contact" element={<Contact />} />
       {/* Add more routes here */}
     </Routes>
   </BrowserRouter>

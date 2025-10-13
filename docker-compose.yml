@@ -39,6 +39,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.frontend
 
+    env_file:
+      - ./frontend/.env
     # Wait to start until backend is built/started (ordering helper, not health)
     depends_on:
       - backend
