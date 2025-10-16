@@ -55,6 +55,10 @@ app.get('/picker', ensureAuth, (req, res) => {
 app.get('/delete', (req, res) => {
     res.sendFile(path.resolve(__dirname, './static/delete.html'));
 });
+
+app.get('/admin', ensureAuth, (req, res) => {
+    res.sendFile(path.resolve(__dirname, './static/admin.html'));
+});
 // Routes
 app.use(oauthRoutes);
 app.use(pickerRoutes);

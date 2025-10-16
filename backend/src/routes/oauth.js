@@ -41,7 +41,7 @@ router.get('/auth/google/callback', async (req, res) => {
         const { tokens } = await oauth2Client.getToken(req.query.code);
         oauth2Client.setCredentials(tokens);
         fs.writeFileSync(TOKEN_JSON, JSON.stringify(tokens, null, 2));
-        return res.redirect('/picker');
+        return res.redirect('/admin');
     } 
     catch (error) { 
         console.error('CALLBACK ERROR:', error); 
