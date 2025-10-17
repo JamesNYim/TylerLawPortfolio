@@ -6,7 +6,7 @@ export default function Dance() {
     return (
           <div className="Dance">
             <Header />
-            <SectionTabPage title="Dance" tabs={["dancer", "choreographer"]} showTabs={true} />
+            <SectionTabPage title="Dance" tabs={["dancer", "choreography"]} showTabs={true} />
             <Footer />
           </div>
       );
