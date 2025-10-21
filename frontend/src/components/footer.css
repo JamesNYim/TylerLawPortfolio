@@ -1,0 +1,63 @@
+/* src/components/Footer.css */
+
+/* ----- Base (mobile-first) ----- */
+footer {
+  color: black;
+  font-family: 'Playfair Display', serif;
+  border-top: 2px solid black;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;     /* stacked layout on small screens */
+  align-items: center;        /* center both logo and icons */
+  text-align: center;
+  gap: 12px;
+}
+
+footer h1 {
+  font-size: 36px;
+  margin: 8px 0;
+}
+
+/* Socials container */
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.socials a {
+  color: black;
+  text-decoration: none;
+}
+
+.socials svg {
+  font-size: 48px; /* slightly smaller for mobile */
+}
+
+/* ----- Desktop (>= 900px) ----- */
+@media (min-width: 900px) {
+  footer {
+    flex-direction: row;          /* logo left, icons right */
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 25px;
+    text-align: left;
+  }
+
+  footer h1 {
+    font-size: 60px;
+    margin: 10px 0;
+  }
+
+  .socials {
+    justify-content: flex-end;    /* 👈 icons line up to the right */
+    gap: 20px;
+  }
+
+  .socials svg {
+    font-size: 60px;              /* restore large desktop size */
+  }
+}
+
