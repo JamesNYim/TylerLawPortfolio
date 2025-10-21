@@ -1,0 +1,113 @@
+/* src/components/ContactForm.css */
+
+/* ===== Base (mobile-first) ===== */
+.ContactForm {
+  margin-top: 25vh;
+  min-height: 100vh;
+  padding: 0 16px;
+}
+
+.ContactForm__title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 300;
+  color: grey;
+  text-align: center;
+  margin: 0 0 16px 0;
+}
+
+.ContactForm__form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Each field section */
+.formSection {
+  width: 100%;
+  max-width: 720px;       /* keeps things readable on large phones/tablets */
+  margin: 0 auto 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+}
+
+/* Inputs & textarea share visual style */
+.inputBase,
+.textareaBase {
+  border-radius: 0;
+  border: 2px solid #ccc;
+  font-family: inherit;
+  font-size: inherit;
+  color: grey;
+  background: transparent;
+  padding: 10px 12px;
+  outline: none;
+}
+
+/* Specific sizing */
+.inputBase {
+  height: 2em;
+}
+
+.textareaBase {
+  height: 16em;
+  resize: vertical;       /* allow user resize on mobile */
+}
+
+/* Placeholder styles */
+.inputBase::placeholder,
+.textareaBase::placeholder {
+  color: grey;
+  font-weight: 300;
+  font-family: 'Playfair Display', serif;
+}
+
+/* Submit button */
+.submitBtn {
+  font: inherit;
+  font-weight: 300;
+  width: 25em;
+  max-width: 100%;
+  height: 3em;
+  margin: 24px auto;
+  cursor: pointer;
+  background: transparent;
+  border: 2px solid grey;
+  color: grey;
+  transition: font-style 120ms ease, transform 120ms ease;
+}
+
+.submitBtn:hover {
+  font-style: italic;      /* replaces onMouseOver/onMouseOut */
+  transform: translateY(-1px);
+}
+
+.submitBtn:focus-visible {
+  outline: 2px solid grey;
+  outline-offset: 3px;
+}
+
+/* Message feedback */
+.feedback {
+  margin-top: 12px;
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  text-align: center;
+  transition: opacity 0.3s ease;
+  color: grey;
+}
+
+/* Optionally fade it in/out */
+.feedback {
+  opacity: 1;
+}
+
+/* ===== Desktop (>= 900px) ===== */
+@media (min-width: 900px) {
+  .formSection {
+    width: 50%;
+  }
+}
+

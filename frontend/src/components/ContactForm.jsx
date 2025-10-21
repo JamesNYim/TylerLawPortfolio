@@ -1,121 +1,65 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import emailjs from '@emailjs/browser';
+import './ContactForm.css';
 
 const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-console.log("EmailJS env:", {
-  SERVICE_ID: SERVICE_ID,
-  TEMPLATE_ID:TEMPLATE_ID,
-  PUBLIC_KEY: PUBLIC_KEY,
-});
-
 export default function ContactForm() {
-    const form = useRef();
+  const form = useRef();
+  const [status, setStatus] = useState(null);  
+  const [loading, setLoading] = useState(false);
 
-    const sendEmail = (e) => {
-        e.preventDefault();
+  const sendEmail = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus(null);
 
-        emailjs.sendForm(
-            SERVICE_ID,
-            TEMPLATE_ID,
-            form.current,
-            {publicKey: PUBLIC_KEY },
-        )
-        .then(
-            () => { console.log("Successfully sent email\n"); },
-            (e) => { console.log("Error sending email...\n", e.text); },
-        );
-    };
+    try {
+      await emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, form.current, { publicKey: PUBLIC_KEY });
+      setStatus('success');
+      form.current.reset(); // clear the form after sending
+    } catch (err) {
+      console.error('EmailJS Error:', err);
+      setStatus('error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    
-    return (
-        <div className="ContactForm" style={{
-            marginTop: '25vh',
-            height: '100vh',
-        }}>
-            <style> 
-            {`
-                input::placeholder,
-                textarea::placeholder {
-                    color: grey;
-                    font-weight: lighter;
-                    font-family: Playfair Display;
-                },
-            `}
-            </style>
-            <h1 style={{fontFamily: 'Playfair Display', fontWeight: 'lighter', color: 'grey', textAlign: 'center'}}>Contact</h1>
-            <form ref={form} onSubmit={sendEmail} style={{
-                display: 'flex',
-                justifyContent: 'center',
-                flexDirection: 'column',
-            }}>
-                
-                <div className="Name" style ={formSectionStyle}>
-                    <input required type="text" name="user_name" placeholder="name" style={{
-                        ...textareaStyle, 
-                        height: '2em',
-                        borderBottom: '0px'
-                    }}/>
-                </div>
+  return (
+    <div className="ContactForm">
+      <h1 className="ContactForm__title">Contact</h1>
 
-                <div className="Email" style ={formSectionStyle}>
-                    <input required type="email" name="user_email" placeholder="email" style={{
-                        ...textareaStyle, 
-                        height: '2em',
-                        borderBottom: '0px'
-                    }}/>
-                </div>
-            
-                <div className="Message" style ={formSectionStyle}>
-                    <textarea required name="message" placeholder="message" style={{
-                        ...textareaStyle, 
-                        height: '16em'
-                    }}/>
-                </div>
-
-                <input 
-                    type="submit" 
-                    value="Send Message" 
-                    style ={{
-                        fontSize: 'inherit',
-                        fontFamily: 'inherit',
-                        fontWeight: 'lighter',
-                        width: '25em',
-                        height: '3em',
-                        margin: '24px auto',
-                        cursor: 'pointer',
-                        backgroundColor: 'transparent',
-                        border: '2px solid grey',
-                        color: 'grey',
-                    }}
-                    onMouseOver= {(e) => {
-                        e.target.style.fontStyle='italic';
-                    }}
-                    onMouseOut= {(e) => {
-                        e.target.style.fontStyle='normal';
-                    }}
-                />
-            </form>
+      <form ref={form} onSubmit={sendEmail} className="ContactForm__form">
+        <div className="formSection">
+          <input required type="text" name="user_name" placeholder="name" className="inputBase" />
         </div>
-    );
+
+        <div className="formSection">
+          <input required type="email" name="user_email" placeholder="email" className="inputBase" />
+        </div>
+
+        <div className="formSection">
+          <textarea required name="message" placeholder="message" className="textareaBase" />
+        </div>
+
+        <input
+          type="submit"
+          value={loading ? "Sending..." : "Send Message"}
+          className="submitBtn"
+          disabled={loading}
+        />
+
+        {status === 'success' && (
+          <p className="feedback success">Message sent successfully!</p>
+        )}
+        {status === 'error' && (
+          <p className="feedback error">Failed to send. Please try again later.</p>
+        )}
+      </form>
+    </div>
+  );
 }
 
-const formSectionStyle = { 
-    width: '50%', 
-    margin: '0 auto', 
-    display: 'flex', 
-    flexDirection: 'column', 
-    justifyContent: 'center',
-    fontFamily: 'Playfair Display',
-    fontSize: '24px',
-};
-
-const textareaStyle = {                         
-    borderRadius: '0px',
-    border: "2px solid #ccc",
-    fontFamily: 'inherit',
-    fontSize: 'inherit',
-    color: 'grey',
-};
