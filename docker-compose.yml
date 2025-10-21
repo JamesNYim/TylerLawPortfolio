@@ -24,12 +24,20 @@ services:
     ports:
       - "8080:8080"
 
+    develop:
+      watch: 
+        - path: ./backend
+          action: rebuild 
+          target: /app
+
   db:
     image: postgres:16
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: gallerydb
+
     ports:
       - "5432:5432"
 
