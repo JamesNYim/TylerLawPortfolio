@@ -1,28 +1,53 @@
-/* Home.css */
+/* ResponsiveHome.css */
+.Home {
+    padding-inline: 16px;
+}
 
 .aboutMe {
-    display: flex;
-    margin: 0 auto;
-    gap: 24px;
-    justify-content: center;
-    height: auto;
+    display: grid;
+    margin: 24px auto;
+    gap: 24px auto;
+    justify-content: space-between;
+    align-items: start;
+    max-width: 1200px;
+    grid-template-columns: 1fr;
 }
 
 .aboutMe .bio {
-    margin: 0 16px;
-    flex: 1 1 50%;
+    margin: 0;
 }
 
 .aboutMe .bio p {
-    font-size: 44px;
+    font-size: clamp(20px, 4vw, 44px);
+    line-height: 1.25;
 }
 #home-gallery {
-    height: 100%;
-    flex: 1 1 50%;
+    width: 100%;
 }
 
-#home-gallery .image-grid {
-    width: 100%;
-    margin: 0 auto;
-    column-count: 1;
+#home-gallery .image-grid .image-grid-item {
+    height: 100%;
+    width: auto;
+}
+
+@media (min-width: 900px) {
+    .aboutMe {
+        grid-template-columns: 1fr 1fr; /* at 900px+, place bio and gallery side-by-side in equal columns */
+    }
+
+    #home-gallery {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+    }
+
+    #home-gallery .image-grid {
+        height: 100%;
+        width: auto;
+    }
+
+    #home-gallery .image-grid .image-grid-item {
+        height: 100%;
+        width: auto;
+    }
 }

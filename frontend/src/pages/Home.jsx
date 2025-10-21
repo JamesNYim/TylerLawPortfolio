@@ -10,6 +10,7 @@ export default function Home() {
       <div className="Home">
         <Header />
         <div className="aboutMe">
+            <SectionTabPage id="home-gallery" title="" tabs={["pfp"]} showTabs={false} />
             <div className="bio">
                 <p> 
                     Tyler Law works in the film/TV, dance, and modeling industries with experience in acting (SAG-E), production work, dancing, choreographing, photoshoots, and runway. 
@@ -17,7 +18,6 @@ export default function Home() {
                     She received her B.A. in Dance and minor in Film, TV, and Digital Media from UCLA.
                 </p>
             </div>
-            <SectionTabPage id="home-gallery" title="" tabs={["pfp"]} showTabs={false} />
         </div>
         <Footer />
       </div>

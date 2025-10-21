@@ -1,15 +1,24 @@
-/* ImageGrid.css */
+/* ImageGrid.css — responsive masonry (inside #home-gallery) */
 
-.image-grid{
-  width:100%;
-  margin:0 auto;
-  column-count:3;            /* masonry columns */
-  column-gap:16px;
+.image-grid {
+  width: 100%;
+  margin: 0 auto;
+  column-width: 260px;     /* browser picks how many columns fit *within the grid column* */
+  column-gap: 16px;
 }
-.image-grid-item{
-  display:inline-block;      /* lets items flow into columns */
-  width:100%;                /* fill column width */
-  margin:0 0 16px;
-  break-inside:avoid;        /* prevent split across columns */
+
+.image-grid-item {
+  display: inline-block;
+  width: 100%;
+  margin: 0 0 16px;
+  break-inside: avoid;
+  border-radius: 12px;
+  height: auto;
+  object-fit: cover;
+}
+
+@media (max-width: 600px) {
+  .image-grid { column-width: 180px; column-gap: 12px; }
+  .image-grid-item { margin-bottom: 12px; }
 }
 

@@ -38,9 +38,12 @@ export default function SectionTabPage({id, title, tabs, showTabs }) {
     }, [active]);
 
   return (
-    <div id={id} className="PhotoGallery" style={{ margin: "0 auto", padding: 16 }}>
-      <h1 style={{ fontFamily: "Oswald, serif", fontSize: 48, margin: "16px 0" }}>{title}</h1>
-
+    <div id={id} className="PhotoGallery">
+        {title && (
+          <h1 style={{ fontFamily: "Oswald, serif", fontSize: 48, margin: "16px 0" }}>
+            {title}
+          </h1>
+        )}
       {shouldShowTabs && (
         <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
           {normalized.map((t) => (
