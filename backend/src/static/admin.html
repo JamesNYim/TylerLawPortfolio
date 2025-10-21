@@ -1,496 +1,598 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Admin – Import & Delete Photos</title>
+  <title>Admin · Gallery</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { 
-        --bg:#0b0c0f; 
-        --card:#12141a; 
-        --ink:#e6e8ee; 
-        --muted:#9aa3b2; 
-        --accent:#6ea8fe; 
-        --danger:#ff6b6b; 
-        --border:#1e2230; 
+    :root {
+      --bg: #0b0b0c;
+      --card: #131316;
+      --muted: #9aa0a6;
+      --text: #e8eaed;
+      --accent: #6ee7b7;
+      --danger: #ef4444;
+      --border: #26262b;
+      --chip: #1b1b20;
     }
-    * { 
-        box-sizing: border-box; 
+    * { box-sizing: border-box }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.45;
     }
-    html, body { 
-        height: 100%; 
-    }
-    body { 
-        margin:0; 
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; 
-        color:var(--ink); 
-        background: linear-gradient(180deg, #0b0c0f, #0f1117); 
-    }
-    h1, h2, h3 { 
-        margin: 0 0 8px; 
-    }
-    a { 
-        color: var(--accent); 
+    a { color: var(--accent); text-decoration: none }
+    a:hover { text-decoration: underline }
+
+    .container {
+      max-width: 1100px;
+      margin: 24px auto 64px;
+      padding: 0 16px;
     }
 
-    .wrap { 
-        max-width: 1100px; 
-        margin: 24px auto; 
-        padding: 0 16px; 
+    header {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
     }
-    .header { 
-        display:flex; 
-        align-items:center; 
-        justify-content: space-between; 
-        margin-bottom: 16px; 
+    header h1 {
+      margin: 0;
+      font-size: clamp(22px, 3.5vw, 32px);
+      letter-spacing: 0.2px;
     }
-    .slugRow { 
-        display:flex; 
-        gap:8px; 
-        align-items:center; 
-        flex-wrap: wrap; 
-    }
-    input[type="text"] { 
-        background:var(--card); 
-        color:var(--ink); 
-        border:1px solid var(--border); 
-        padding:10px 12px; 
-        border-radius:10px; 
-        outline:none; 
-        min-width: 260px; 
-    }
-    input[type="text"]::placeholder{ 
-        color:var(--muted); 
-    }
-    button { 
-        background:#1a5fff; 
-        color:white; 
-        border:none; 
-        padding:10px 14px; 
-        border-radius:10px; 
-        cursor:pointer; 
-        font-weight:600; 
-    }
-    button.secondary { 
-        background:#262b3a; 
-        color:var(--ink); 
-    }
-    button.ghost { 
-        background:transparent; 
-        border:1px solid var(--border); 
-    }
-    button.danger { 
-        background: var(--danger); 
-    }
-    button:disabled { 
-        opacity:.5; 
-        cursor:not-allowed; 
-    }
-    .segmented { 
-        display:flex; 
-        flex-wrap:wrap; 
-        gap:8px; 
-        width: 100%;
+    .muted { color: var(--muted) }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 0;
     }
     .chip {
-    background:#262b3a; 
-    color:var(--ink); 
-    border:1px solid var(--border);
-    
-    padding:8px 12px; 
-    border-radius:999px; 
-    cursor:pointer; 
-    font-weight:600;
-  
+      background: var(--chip);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
     }
-    .chip.active { 
-        background:#1a5fff; 
-        color:#fff; 
-        border-color:white; 
-    }
-    .cards { 
-        display:grid; 
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-        gap: 16px; 
-    }
-    .card { 
-        background:var(--card); 
-        border:1px solid var(--border); 
-        border-radius:16px; 
-        padding:16px; 
-        box-shadow: 0 4px 16px rgba(0,0,0,.25); 
-    }
-    .card .row { 
-        display:flex; 
-        gap:8px; 
-        flex-wrap: wrap; 
-        align-items:center; 
-    }
-    .muted { 
-        color: var(--muted); 
-        font-size: 13px; 
-    }
-    .status { 
-        margin-top:8px; 
-        font-size: 14px; 
-        min-height: 21px; 
+    .chip.active {
+      background: var(--text);
+      color: #0b0b0c;
+      border-color: var(--text);
+      font-weight: 600;
     }
 
-    .grid { 
-        display:grid; 
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
-        gap:12px; 
-        margin-top:12px; 
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
     }
-    .item { 
-        border:1px solid var(--border); 
-        border-radius:12px; 
-        overflow:hidden; 
-        background:#0f1322; 
+    @media (min-width: 700px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
     }
-    .thumb { 
-        width: 100%; 
-        height: 120px; 
-        object-fit: cover; 
-        display:block; 
-    }
-    .item .bar { 
-        display:flex; 
-        justify-content: space-between; 
-        align-items:center; 
-        gap:8px; 
-        padding:8px; 
-    }
-    .item small { 
-        color: var(--muted); 
-        font-size: 11px; 
+    @media (min-width: 960px) {
+      .grid { grid-template-columns: repeat(4, 1fr); }
     }
 
-    .toolbar { 
-        display:flex; 
-        align-items:center; 
-        gap:8px; 
-        margin-top:12px; 
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 16px 0;
     }
-    .pill { 
-        display:inline-flex; 
-        align-items:center; 
-        gap:6px; 
-        border:1px solid var(--border); 
-        padding:6px 10px; 
-        border-radius:999px; 
-        font-size:12px; 
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
     }
-    .spacer { 
-        flex:1; 
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0 14px;
+    }
+    .toolbar .spacer { flex: 1 1 auto }
+
+    .btn {
+      background: #1f2937;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover { filter: brightness(1.1) }
+    .btn.primary { background: var(--text); color: #0b0b0c; border-color: var(--text); font-weight: 600 }
+    .btn.accent { background: #123; border-color: #1b3b3b; color: var(--accent) }
+    .btn.danger { background: #2a1111; border-color: #3b1a1a; color: #ffb4b4 }
+
+    input[type="file"] {
+      background: #111215;
+      border: 1px dashed var(--border);
+      padding: 10px;
+      border-radius: 12px;
+      color: var(--muted);
+      max-width: 100%;
     }
 
-    pre.code { 
-        background:#0f1322; 
-        border:1px solid var(--border); 
-        color:#dbe4ff; 
-        padding:12px; 
-        border-radius:12px; 
-        max-height: 180px; 
-        overflow:auto; 
+    .status {
+      min-height: 20px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0f1013;
+      position: relative;
+    }
+    .thumb {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      background: #0a0a0c;
+    }
+    .bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      word-break: break-all;
+    }
+    .check {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(11,11,12,0.6);
+      backdrop-filter: blur(2px);
+      padding: 4px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .help {
+      border-left: 3px solid #303036;
+      padding-left: 10px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    code.kbd {
+      background: #0f0f12;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      color: #c6d0ff;
     }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <div class="header">
-      <div>
-        <h1>Admin</h1>
-        <div class="muted">Import from Google Photos and delete items — all in one place.</div>
+  <div class="container">
+    <header>
+      <h1>Gallery Admin</h1>
+      <div class="muted">Pick a section, upload from your computer or import from Google Photos, and manage items.</div>
+      <div id="sectionStatus" class="status"></div>
+      <div id="sectionChips" class="chips"></div>
+    </header>
+
+    <!-- Google Photos import -->
+    <section class="card" id="googleCard">
+      <h2>Import from Google Photos</h2>
+      <div class="muted">Use the Google Picker to choose album(s) or photo(s), then import into the current section.</div>
+      <div class="toolbar">
+        <button class="btn accent" id="openPicker">Launch Google Picker</button>
+        <div class="spacer"></div>
+        <span class="muted">Current section: <strong id="currentSectionName">—</strong></span>
       </div>
-      <div class="pill">Secure area</div>
-    </div>
+      <div class="help">
+        After picking, you’ll be returned here. Your backend’s picker page is expected at <code class="kbd">/picker.html?returnTo=/admin.html</code>.
+      </div>
+      <div id="googleStatus" class="status"></div>
+    </section>
 
-    <div class="slugRow">
-        <div class="segmented" id="sectionPicker"></div>
+    <!-- Local file uploads -->
+    <section class="card" id="uploadCard">
+      <h2>Upload Local Files</h2>
+      <div class="muted">Select images or videos from your computer and upload them into the current section.</div>
 
-      <!-- keep slug but hide it; the picker will set this -->
-      <input id="slug" type="hidden" />
+      <div class="toolbar" style="flex-wrap:wrap">
+        <input id="fileInput" type="file" multiple accept="image/*,video/*" />
+        <button id="startUpload" class="btn primary">Upload Selected</button>
+        <div class="spacer"></div>
+        <span class="muted" id="uploadCount">No files chosen</span>
+      </div>
 
-      <!-- title stays visible so you can override the default if you want -->
+      <div id="uploadStatus" class="status"></div>
+      <div id="uploadPreview" class="grid"></div>
+    </section>
 
-      <button id="loadBtn" class="secondary">Load Items</button>
-      <button id="refreshBtn" class="ghost">Refresh</button>
-    </div>
-
-    <div class="cards" style="margin-top:16px;">
-      <!-- Import Card -->
-      <section class="card" id="importCard">
-        <h2>Import from Google Photos</h2>
-        <div class="muted">Opens the Google Photos Picker in a new tab and auto-imports the selection into the current section.</div>
-        <div class="toolbar">
-          <button id="startPicker">Start Picker</button>
-          <div class="spacer"></div>
-          <button id="showPreview" class="ghost">Toggle Preview</button>
-        </div>
-        <div id="importStatus" class="status"></div>
-        <pre id="preview" class="code" style="display:none"></pre>
-      </section>
-
-      <!-- Delete Card -->
-      <section class="card" id="deleteCard">
-        <h2>Delete Items</h2>
-        <div class="toolbar">
-          <button id="deleteSelected" class="danger" disabled>Delete Selected</button>
-          <div class="spacer"></div>
-          <span class="muted" id="countLabel">0 loaded</span>
-        </div>
-        <div id="deleteStatus" class="status"></div>
-        <div id="grid" class="grid"></div>
-      </section>
-    </div>
+    <!-- Manage items -->
+    <section class="card" id="manageCard">
+      <h2>Manage Section Items</h2>
+      <div class="toolbar">
+        <button class="btn" id="refreshItems">Refresh</button>
+        <button class="btn danger" id="deleteSelected">Delete Selected</button>
+        <div class="spacer"></div>
+        <label class="row" style="gap:6px;font-size:13px">
+          <input type="checkbox" id="toggleAll" />
+          Select all
+        </label>
+      </div>
+      <div id="itemsStatus" class="status"></div>
+      <div id="itemsGrid" class="grid"></div>
+    </section>
   </div>
 
   <script>
-    const $ = (sel) => document.querySelector(sel);
-    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+    // ---------- tiny DOM helpers ----------
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
 
-    const els = {
-      slug: $('#slug'),
-      title: $('#title') || null,
-      loadBtn: $('#loadBtn'),
-      refreshBtn: $('#refreshBtn'),
-      startPicker: $('#startPicker'),
-      showPreview: $('#showPreview'),
-      importStatus: $('#importStatus'),
-      preview: $('#preview'),
-      deleteStatus: $('#deleteStatus'),
-      deleteSelected: $('#deleteSelected'),
-      grid: $('#grid'),
-      countLabel: $('#countLabel'),
+    function setStatus(node, msg, type='info') {
+      if (!node) return;
+      node.textContent = msg || '';
+      node.style.color = type === 'error' ? '#ffb4b4' : type === 'ok' ? '#b4ffd3' : 'var(--muted)';
+    }
+
+    // ---------- state ----------
+    const state = {
+      sections: [],
+      activeSlug: null,
+      items: [],
+      selectedIds: new Set(),
     };
-    
-      // Define your finite set here
-      const SECTIONS = [
-        { slug: 'pfp',       title: 'Profile Picture' },
-        { slug: 'dancer',   title: 'Dance — Dancer' },
-        { slug: 'choreography',   title: 'Dance — Choreographer' },
-        { slug: 'acting',    title: 'Film — Acting' },
-        { slug: 'production',title: 'Film — Production' },
-        { slug: 'modeling',       title: 'Modeling' },
-        // add/remove as needed
-      ];
 
-      let selectedSection = null;
+    function getSlug() { return state.activeSlug; }
+    function getActiveSection() {
+      return state.sections.find(s => s.slug === state.activeSlug) || null;
+    }
 
-      function renderSectionPicker() {
-        const picker = document.getElementById('sectionPicker');
-        picker.innerHTML = SECTIONS.map(s =>
-          `<button class="chip" data-slug="${s.slug}" data-title="${s.title}">${s.title}</button>`
-        ).join('');
-
-        picker.addEventListener('click', (e) => {
-          const btn = e.target.closest('.chip');
-          if (!btn) return;
-          setSection(btn.dataset.slug);
-        });
-
-        // Choose a default on load
-        setSection(SECTIONS[0].slug);
-      }
-
-      function setSection(slug) {
-        selectedSection = SECTIONS.find(s => s.slug === slug) || null;
-
-        // reflect selection in hidden slug + UI
-        els.slug.value = selectedSection ? selectedSection.slug : '';
-        // only touch title if it exists
-        if (els.title) {
-            els.title.placeholder = selectedSection ? selectedSection.title : 'section title (for new imports)';
+    // ---------- sections ----------
+    async function fetchSections() {
+      setStatus($('#sectionStatus'), 'Loading sections…');
+      try {
+        const r = await fetch('/api/gallery/sections', { credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        state.sections = Array.isArray(data) ? data : (data.sections || []);
+        renderSectionChips();
+        if (!state.activeSlug && state.sections[0]) {
+          setActiveSection(state.sections[0].slug);
+        } else {
+          // refresh UI with current
+          updateCurrentSectionLabel();
+          await loadItems(true);
         }
-        // toggle active chip
-        document.querySelectorAll('#sectionPicker .chip').forEach(chip => {
-          chip.classList.toggle('active', chip.dataset.slug === slug);
+        setStatus($('#sectionStatus'), '');
+      } catch (e) {
+        setStatus($('#sectionStatus'), 'Failed to load sections: ' + (e.message || e), 'error');
+      }
+    }
+
+    function renderSectionChips() {
+      const box = $('#sectionChips');
+      box.innerHTML = '';
+      const frag = document.createDocumentFragment();
+      state.sections.forEach(s => {
+        const btn = document.createElement('button');
+        btn.className = 'chip' + (s.slug === state.activeSlug ? ' active' : '');
+        btn.textContent = s.title || s.slug;
+        btn.dataset.slug = s.slug;
+        btn.addEventListener('click', () => setActiveSection(s.slug));
+        frag.appendChild(btn);
+      });
+      box.appendChild(frag);
+    }
+
+    async function setActiveSection(slug) {
+      state.activeSlug = slug;
+      state.selectedIds.clear();
+      renderSectionChips();
+      updateCurrentSectionLabel();
+      await loadItems(true);
+    }
+
+    function updateCurrentSectionLabel() {
+      const sec = getActiveSection();
+      $('#currentSectionName').textContent = sec ? (sec.title || sec.slug) : '—';
+    }
+
+    // ---------- items list ----------
+    async function loadItems(showSpin=false) {
+      if (!getSlug()) return;
+      if (showSpin) setStatus($('#itemsStatus'), 'Loading items…');
+      try {
+        const r = await fetch(`/api/gallery/sections/${encodeURIComponent(getSlug())}/items`, { credentials: 'include' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        // Accept either array or { items: [] }
+        state.items = Array.isArray(data) ? data : (data.items || []);
+        state.selectedIds.clear();
+        $('#toggleAll').checked = false;
+        renderItemsGrid();
+        setStatus($('#itemsStatus'), `Loaded ${state.items.length} item(s).`, 'ok');
+      } catch (e) {
+        setStatus($('#itemsStatus'), 'Failed to load items: ' + (e.message || e), 'error');
+      }
+    }
+
+    function imgSrcFor(item) {
+      return item.thumb_url || item.thumbUrl || item.storage_url || item.storageUrl || item.fullUrl || item.url || '';
+    }
+
+    function renderItemsGrid() {
+      const grid = $('#itemsGrid');
+      grid.innerHTML = '';
+      if (!state.items.length) return;
+
+      const frag = document.createDocumentFragment();
+      state.items.forEach(it => {
+        const div = document.createElement('div');
+        div.className = 'item';
+
+        const isImage = (it.mime_type || it.mimeType || '').startsWith('image/') ||
+                        /\.(png|jpe?g|webp|avif|gif)$/i.test(imgSrcFor(it));
+
+        const src = imgSrcFor(it);
+        div.innerHTML = `
+          <label class="check">
+            <input type="checkbox" data-id="${it.id}"/>
+          </label>
+          ${
+            isImage
+              ? `<img class="thumb" src="${src}" alt="">`
+              : `<div class="thumb" style="display:grid;place-items:center;font-size:12px">${it.filename || it.id}</div>`
+          }
+          <div class="bar">
+            <small>${it.filename || it.id}</small>
+            <small>#${it.id}</small>
+          </div>
+        `;
+        frag.appendChild(div);
+      });
+      grid.appendChild(frag);
+
+      // wire checkboxes
+      $$('#itemsGrid input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+          const id = Number(e.target.dataset.id);
+          if (e.target.checked) state.selectedIds.add(id);
+          else state.selectedIds.delete(id);
         });
-      }
+      });
+    }
 
+    // toggle all
+    $('#toggleAll').addEventListener('change', (e) => {
+      const on = e.target.checked;
+      state.selectedIds.clear();
+      $$('#itemsGrid input[type="checkbox"]').forEach(cb => {
+        cb.checked = on;
+        const id = Number(cb.dataset.id);
+        if (on) state.selectedIds.add(id);
+      });
+    });
+
+    // refresh
+    $('#refreshItems').addEventListener('click', () => loadItems(true));
+
+    // delete
+    $('#deleteSelected').addEventListener('click', async () => {
+      if (!getSlug()) return;
+      const ids = Array.from(state.selectedIds);
+      if (!ids.length) {
+        return setStatus($('#itemsStatus'), 'Select at least one item to delete.');
+      }
+      if (!confirm(`Delete ${ids.length} item(s)? This cannot be undone.`)) return;
+
+      setStatus($('#itemsStatus'), 'Deleting…');
+      try {
+        const r = await fetch(`/api/gallery/sections/${encodeURIComponent(getSlug())}/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ ids })
+        });
+        const data = await r.json().catch(()=>({}));
+        if (!r.ok) throw new Error(data.error || r.statusText);
+        setStatus($('#itemsStatus'), `Deleted ${ids.length} item(s).`, 'ok');
+        await loadItems(true);
+      } catch (e) {
+        setStatus($('#itemsStatus'), 'Failed to delete: ' + (e.message || e), 'error');
+      }
+    });
+
+    // ---------- upload local files ----------
+    const uploadEls = {
+      fileInput: document.getElementById('fileInput'),
+      startUpload: document.getElementById('startUpload'),
+      uploadCount: document.getElementById('uploadCount'),
+      uploadStatus: document.getElementById('uploadStatus'),
+      uploadPreview: document.getElementById('uploadPreview'),
+    };
+
+    function renderUploadPreview(files) {
+      const frag = document.createDocumentFragment();
+      Array.from(files).forEach(f => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        const isImg = f.type.startsWith('image/');
+        const url = URL.createObjectURL(f);
+        div.innerHTML = `
+          ${isImg ? `<img class="thumb" src="${url}" alt=""/>`
+                   : `<div class="thumb" style="display:grid;place-items:center;font-size:12px;">${f.name}</div>`}
+          <div class="bar"><small>${f.name}</small><small>${Math.round(f.size/1024)} KB</small></div>
+        `;
+        frag.appendChild(div);
+      });
+      uploadEls.uploadPreview.innerHTML = '';
+      uploadEls.uploadPreview.appendChild(frag);
+    }
+
+    uploadEls.fileInput.addEventListener('change', () => {
+      const n = uploadEls.fileInput.files.length;
+      uploadEls.uploadCount.textContent = n ? `${n} file(s) selected` : 'No files chosen';
+      renderUploadPreview(uploadEls.fileInput.files || []);
+    });
+
+    uploadEls.startUpload.addEventListener('click', async () => {
+      const files = uploadEls.fileInput.files;
+      if (!getSlug()) return setStatus(uploadEls.uploadStatus, 'Pick a section first.');
+      if (!files || !files.length) return setStatus(uploadEls.uploadStatus, 'Pick at least one file.');
+
+      try {
+        setStatus(uploadEls.uploadStatus, 'Uploading…');
+        const form = new FormData();
+        Array.from(files).forEach(f => form.append('files', f));
+        const resp = await fetch(`/api/gallery/sections/${encodeURIComponent(getSlug())}/upload`, {
+          method: 'POST',
+          body: form,
+          credentials: 'include'
+        });
+        const data = await resp.json().catch(()=>({}));
+        if (!resp.ok) throw new Error(data.error || resp.statusText);
+        const n = (data.created && data.created.length) || 0;
+        setStatus(uploadEls.uploadStatus, `Uploaded ${n} item(s).`, 'ok');
+        uploadEls.fileInput.value = '';
+        uploadEls.uploadCount.textContent = 'No files chosen';
+        uploadEls.uploadPreview.innerHTML = '';
+        await loadItems(true);
+      } catch (e) {
+        setStatus(uploadEls.uploadStatus, 'Upload failed: ' + (e.message || e), 'error');
+      }
+    });
+
+    // ---------- google picker ----------
     
-    // --- Shared helpers ---
-    // replace your existing getSlug() with:
-      function getSlug() {
-        const s = (els.slug.value || '').trim();
-        if (!s) throw new Error('Pick a section.');
-        return s;
-      }
+    const els = {
+      importBtn: document.getElementById('openPicker'),
+      importStatus: document.getElementById('googleStatus'),
+      preview: { textContent: '' } // optional dump
+    };
 
-      function getTitleFallback(slug) {
-        const typed = (els.title && els.title.value ? els.title.value.trim() : '');
-        if (typed) return typed;
-        if (selectedSection && selectedSection.slug === slug) return selectedSection.title;
-        return slug;
-      }
-    
-    function setStatus(el, msg) { el.textContent = msg || ''; }
+    function getTitleFallback(slug) {
+      const sec = state.sections.find(s => s.slug === slug);
+      return (sec && (sec.title || sec.slug)) || slug || 'Untitled';
+    }
 
-    // --- Import flow (Picker) ---
-    let importedOnce = false;
     async function startPickerFlow() {
       try {
         const slug = getSlug();
+        if (!slug) { setStatus(els.importStatus, 'Pick a section first.', 'error'); return; }
         const sectionTitle = getTitleFallback(slug);
         setStatus(els.importStatus, 'Creating Picker session…');
 
-        // Create a Picker session on the backend (expects JSON back)
+        // 1) Create a session
         const res = await fetch('/picker/sessions', {
           method: 'POST',
           headers: { 'Accept': 'application/json' },
           credentials: 'include'
         });
 
-        // Not logged in? navigate to OAuth (XHR cannot follow cross-origin redirects)
+        // 401 => kick off OAuth, resume after redirect
         if (res.status === 401) {
-          const returnTo = '/admin.html#resume=picker';
+          const returnTo = '/admin#resume=picker';
           window.location.assign('/auth/google?returnTo=' + encodeURIComponent(returnTo));
           return;
         }
-
         if (!res.ok) {
-          const msg = await res.text().catch(()=>'');
+          const msg = await res.text().catch(()=> '');
           throw new Error(`Failed to create Picker session (${res.status}). ${msg}`);
         }
 
-        const sess = await res.json();                 // <-- define sess here
-        if (!sess || !sess.sessionId || !sess.pickerUri) {
-          throw new Error('Failed to create Picker session.');
-        }
+        const sess = await res.json();
+        if (!sess || !sess.sessionId || !sess.pickerUri) throw new Error('Picker session missing fields.');
 
-        // Open Picker and start polling
+        // 2) Open Picker
         window.open(sess.pickerUri, '_blank');
         setStatus(els.importStatus, 'Waiting for selection… (switch to the Picker tab)');
 
+        // 3) Poll until selection is ready
         const poll = async () => {
-          const r = await fetch('/picker/sessions/' + encodeURIComponent(sess.sessionId));
+          const r = await fetch('/picker/sessions/' + encodeURIComponent(sess.sessionId), { credentials: 'include' });
           if (!r.ok) throw new Error('Could not read Picker session.');
           const info = await r.json();
 
           if (!info.mediaItemsSet) {
             const interval = info.recommendedPollingIntervalMillis || 1200;
             setTimeout(poll, interval);
-          } else {
-            setStatus(els.importStatus, 'Selection complete. Fetching chosen items…');
-            const itemsRes = await fetch('/picker/mediaItems?sessionId=' + encodeURIComponent(sess.sessionId));
-            if (!itemsRes.ok) throw new Error('Could not fetch chosen items.');
-            const items = await itemsRes.json();
-            els.preview.textContent = JSON.stringify(items, null, 2);
-
-            setStatus(els.importStatus, `Importing to section "${sectionTitle}"…`);
-            const resp = await fetch('/api/gallery/sections/' + encodeURIComponent(slug) + '/import', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ sessionId: sess.sessionId, sectionTitle })
-            });
-            const data = await resp.json().catch(()=>({}));
-            if (resp.ok) {
-              setStatus(els.importStatus, 'Imported ' + (data.importedCount || 0) + ' items.');
-              await loadItems();
-            } else {
-              setStatus(els.importStatus, 'Import failed: ' + (data.error || resp.statusText));
-            }
+            return;
           }
+
+          // 4) (optional) fetch picked items just to verify
+          setStatus(els.importStatus, 'Selection complete. Fetching chosen items…');
+          const itemsRes = await fetch('/picker/mediaItems?sessionId=' + encodeURIComponent(sess.sessionId), { credentials: 'include' });
+          if (!itemsRes.ok) throw new Error('Could not fetch chosen items.');
+          const items = await itemsRes.json();
+          // els.preview.textContent = JSON.stringify(items, null, 2); // debug
+
+          // 5) Import into the current section
+          setStatus(els.importStatus, `Importing to section “${sectionTitle}”…`);
+          const resp = await fetch('/api/gallery/sections/' + encodeURIComponent(slug) + '/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ sessionId: sess.sessionId, sectionTitle })
+          });
+          const data = await resp.json().catch(()=> ({}));
+          if (!resp.ok) throw new Error('Import failed: ' + (data.error || resp.statusText));
+
+          setStatus(els.importStatus, 'Imported ' + (data.importedCount || 0) + ' item(s).', 'ok');
+          await loadItems(true);
         };
+
         poll();
       } catch (e) {
-        setStatus(els.importStatus, e.message || String(e));
+        setStatus(els.importStatus, e.message || String(e), 'error');
       }
     }
 
-        // --- Delete flow ---
-    async function loadItems() {
-      const slug = getSlug();
-      setStatus(els.deleteStatus, 'Loading…');
-      els.grid.innerHTML = '';
-      els.deleteSelected.disabled = true;
-      try {
-        const resp = await fetch(`/api/gallery/sections/${encodeURIComponent(slug)}/items`);
-        if (!resp.ok) throw new Error(resp.statusText);
-        const data = await resp.json();
-        const items = data.items || [];
-        els.countLabel.textContent = `${items.length} loaded`;
-        if (!items.length) {
-          setStatus(els.deleteStatus, `No items for "${slug}".`);
-          return;
-        }
-        setStatus(els.deleteStatus, '');
+    // Wire button
+    els.importBtn.addEventListener('click', startPickerFlow);
 
-        const frag = document.createDocumentFragment();
-        items.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'item';
-          const url = item.fullUrl || item.storage_url;
-          div.innerHTML = `
-            <img class="thumb" src="${url}" alt=""/>
-            <div class="bar">
-              <label style="display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" class="sel" data-id="${item.id}" />
-                <small>ID ${item.id}</small>
-              </label>
-              <div style="display:flex; gap:6px;">
-                <a href="${url}" target="_blank" class="ghost">Open</a>
-                <button class="danger delOne" data-id="${item.id}">Delete</button>
-              </div>
-            </div>`;
-          frag.appendChild(div);
-        });
-        els.grid.appendChild(frag);
-      } catch (e) {
-        setStatus(els.deleteStatus, 'Error: ' + (e.message || String(e)));
+    // Auto-resume after OAuth
+    (function resumeAfterAuth() {
+      const u = new URL(window.location.href);
+      if (u.hash === '#resume=picker') {
+        history.replaceState(null, '', u.pathname + u.search);
+        setTimeout(startPickerFlow, 200);
       }
-    }
+    })();
 
-    async function deleteIds(ids) {
-      const slug = getSlug();
-      setStatus(els.deleteStatus, `Deleting ${ids.length}…`);
-      const resp = await fetch(`/api/gallery/sections/${encodeURIComponent(slug)}/delete`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids })
-      });
-      const data = await resp.json().catch(()=>({}));
-      if (!resp.ok) {
-        setStatus(els.deleteStatus, 'Delete failed: ' + (data.error || resp.statusText));
-      } else {
-        setStatus(els.deleteStatus, `Deleted ${data.deletedCount} item(s).`);
-        await loadItems();
+    // ---------- boot ----------
+    (async function boot() {
+      await fetchSections();
+      // optional: if URL has ?section=slug, activate it
+      const u = new URL(window.location.href);
+      const pre = u.searchParams.get('section');
+      if (pre && state.sections.some(s => s.slug === pre)) {
+        await setActiveSection(pre);
       }
-    }
-
-    // --- Event wiring ---
-    els.loadBtn.addEventListener('click', () => loadItems().catch(()=>{}));
-    els.refreshBtn.addEventListener('click', () => loadItems().catch(()=>{}));
-    els.startPicker.addEventListener('click', () => startPickerFlow());
-    els.showPreview.addEventListener('click', () => {
-      els.preview.style.display = els.preview.style.display === 'none' ? 'block' : 'none';
-    });
-
-    // Delegated handlers for grid
-    els.grid.addEventListener('change', () => {
-      const any = $$('.sel:checked').length > 0;
-      els.deleteSelected.disabled = !any;
-    });
-    els.grid.addEventListener('click', (e) => {
-      const btn = e.target.closest('.delOne');
-      if (btn) {
-        const id = btn.getAttribute('data-id');
-        if (confirm('Delete item ' + id + '?')) {
-          deleteIds([id]);
-        }
-      }
-    });
-    els.deleteSelected.addEventListener('click', () => {
-      const ids = $$('.sel:checked').map(cb => cb.dataset.id);
-      if (!ids.length) return;
-      if (confirm(`Delete ${ids.length} items?`)) deleteIds(ids);
-    });
-
-    // Quality of life: load when slug loses focus or Enter is pressed
-    els.slug.addEventListener('keydown', (e) => { if (e.key === 'Enter') els.loadBtn.click(); });
-    els.slug.addEventListener('blur', () => { if (els.slug.value.trim()) els.loadBtn.click(); });
-    renderSectionPicker();
+    })();
   </script>
 </body>
 </html>
+

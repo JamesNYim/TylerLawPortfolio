@@ -1,10 +1,12 @@
 // gallery.js
 
 const express = require('express');
+const crypto = require('crypto');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');
+const multer = require('multer');
 
 
 const ensureAuth = require('../middleware/ensureAuth');
@@ -15,17 +17,41 @@ const router = express.Router();
 
 const { MEDIA_DIR } = require('../config');
 
+// Multer in-memory; we control writing/resizing
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB per file
+  fileFilter: (req, file, cb) => {
+    const ok = /^image\//.test(file.mimetype) || /^video\//.test(file.mimetype);
+    cb(ok ? null : new Error('Only images/videos are allowed'), ok);
+  }
+});
+
 // === helpers (add near top of file, after MEDIA_DIR) ===
 function localPathFromStorageUrl(storageUrl) {
-  // Expect storageUrl like "/static/<slug>/<filename>"
-  if (!storageUrl || !storageUrl.startsWith('/static/')) return null;
-  const rel = storageUrl.replace('/static/', ''); // "<slug>/<filename>"
+  // Expect storageUrl like "/media/<slug>/<filename>"
+  if (!storageUrl || !storageUrl.startsWith('/media/')) return null;
+  const rel = storageUrl.replace('/media/', ''); // "<slug>/<filename>"
   const abs = path.join(MEDIA_DIR, rel);          // MEDIA_DIR/<slug>/<filename>
-  // safety: ensure we're still inside MEDIA_DIR
   const resolved = path.resolve(abs);
   if (!resolved.startsWith(MEDIA_DIR + path.sep)) return null;
   return resolved;
 }
+
+// List sections
+router.get('/api/gallery/sections', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, title, sort_order, updated_at
+         FROM sections
+        ORDER BY sort_order ASC, id ASC`
+    );
+    res.json({ sections: rows });
+  } catch (e) {
+    console.error('GET /api/gallery/sections failed:', e);
+    res.status(500).json({ error: 'Failed to load sections' });
+  }
+});
 
 // POST picked photos in designated section
 router.post('/api/gallery/sections/:slug/import', ensureAuth, async (req, res) => {
@@ -116,6 +142,107 @@ router.post('/api/gallery/sections/:slug/import', ensureAuth, async (req, res) =
   } catch (err) {
     console.error('Import failed:', err.response?.data || err.message);
     res.status(500).json({ error: 'Import failed' });
+  }
+});
+
+// POST /api/gallery/sections/:slug/upload  (local files)
+router.post('/api/gallery/sections/:slug/upload', upload.array('files', 40), async (req, res) => {
+  const { slug } = req.params;
+
+  try {
+    if (!slug) return res.status(400).json({ error: 'Missing slug' });
+    const files = req.files || [];
+    if (!files.length) return res.status(400).json({ error: 'No files uploaded' });
+
+    // Ensure section exists (upsert like your Google import route)
+    await pool.query(
+      `INSERT INTO sections (slug, title, sort_order, updated_at)
+       VALUES ($1, $2, 0, $3)
+       ON CONFLICT (slug) DO UPDATE
+         SET title = EXCLUDED.title,
+             updated_at = EXCLUDED.updated_at`,
+      [slug, slug, new Date().toISOString()]
+    );
+
+    // Ensure folder
+    const sectionDir = path.join(MEDIA_DIR, slug);
+    if (!fs.existsSync(sectionDir)) fs.mkdirSync(sectionDir, { recursive: true });
+
+    const created = [];
+
+    for (const f of files) {
+      const nowIso = new Date().toISOString();
+      const hash = crypto.createHash('sha1').update(f.buffer).digest('hex');
+      const localId = `local:${hash}`; // <- satisfies NOT NULL
+
+      if (f.mimetype.startsWith('image/')) {
+        // (your existing sharp processing up to target + outName + width/height)
+        const isHeic = /\.(heic|heif)$/i.test(f.originalname || '');
+        const target = isHeic
+          ? path.join(sectionDir, f.originalname.replace(/\.(heic|heif)$/i, '.jpg'))
+          : path.join(sectionDir, f.originalname);
+        const outName = path.basename(target);
+
+        const pipeline = sharp(f.buffer, { limitInputPixels: false }).rotate();
+        const meta = await pipeline.metadata().catch(() => ({}));
+        const width = meta.width || null;
+        const height = meta.height || null;
+
+        await pipeline.jpeg({ quality: 88 }).toFile(target);
+
+        const { rows } = await pool.query(
+          `INSERT INTO media_items
+             (google_id, section_slug, filename, mime_type, width, height, created_time, storage_url, picked_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+           ON CONFLICT (google_id, section_slug) DO NOTHING
+           RETURNING id, section_slug AS "slug", filename, mime_type AS "mimeType",
+                     storage_url AS "storageUrl"`,
+          [
+            localId,
+            slug,
+            outName,
+            isHeic ? 'image/jpeg' : f.mimetype,
+            width, height,
+            nowIso,
+            `/media/${slug}/${outName}`,
+            nowIso
+          ]
+        );
+
+        if (rows[0]) created.push(rows[0]);
+      } 
+      else {
+        // video
+        const base = `${Date.now()}-${Math.random().toString(36).slice(2,8)}${path.extname(f.originalname)}`;
+        const abs = path.join(sectionDir, base);
+        await fs.promises.writeFile(abs, f.buffer);
+
+        const { rows } = await pool.query(
+          `INSERT INTO media_items
+             (google_id, section_slug, filename, mime_type, width, height, created_time, storage_url, picked_at)
+           VALUES ($1,$2,$3,$4,NULL,NULL,$5,$6,$7)
+           ON CONFLICT (google_id, section_slug) DO NOTHING
+           RETURNING id, section_slug AS "slug", filename, mime_type AS "mimeType",
+                     storage_url AS "storageUrl"`,
+          [
+            localId,
+            slug,
+            path.basename(abs),
+            f.mimetype,
+            nowIso,
+            `/media/${slug}/${path.basename(abs)}`,
+            nowIso
+          ]
+        );
+
+        if (rows[0]) created.push(rows[0]);
+      }
+    }
+
+    return res.status(201).json({ created });
+  } catch (e) {
+    console.error('Upload failed:', e);
+    return res.status(500).json({ error: e.message || 'Upload failed' });
   }
 });
 
