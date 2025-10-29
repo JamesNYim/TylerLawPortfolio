@@ -1,0 +1,8 @@
+[
+  { "slug": "acting", "title": "Film-acting", "sort_order": 1 },
+  { "slug": "production", "title": "Film-production", "sort_order": 2 },
+  { "slug": "dancer", "title": "Dance-dancer", "sort_order": 3 },
+  { "slug": "choreography", "title": "Dance-choreography", "sort_order": 4 },
+  { "slug": "modeling", "title": "Modeling", "sort_order": 5 },
+]
+
